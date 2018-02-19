@@ -1,0 +1,99 @@
+---
+title: "HW1_Zelenkova"
+output: html_document
+---
+
+``` {r}
+library(tidyverse)
+library(irr)
+```
+
+### 1.1
+
+```{r cars}
+data <- read_csv('https://raw.githubusercontent.com/agricolamz/2018_data_analysis_for_linguists/master/data/students/Lera-Z/hw1_agreement/hw1_1_zilo_class.csv')
+df <- as_tibble(data)
+df %>%
+  distinct(stimulus_source, translation_ru) %>%
+  count(stimulus_source)
+  
+```
+
+### 1.2
+
+``` {r}
+data %>% 
+  select(s_id, stimulus, translation_ru, stimulus_source, class) %>% 
+  spread(key = s_id, value = class) ->
+  zilo_classes_short
+head(zilo_classes_short)
+
+agree(zilo_classes_short[,-c(1:3)])
+```
+### 1.3
+``` {r}
+zilo_classes_2s <- zilo_classes_short[,c(10, 14)]
+kappa2(zilo_classes_2s)
+```
+
+
+
+### 1.4
+
+```{r}
+kappam.fleiss(zilo_classes_short[,-c(1:3)])
+```
+
+
+### 1.5
+```
+На датасете, использованном в анализе, было подсчитано количество уникальных слов по категориям источника стимула (loanword VS native). Затем данные были преобразованы в следующий формат: первые три столбца содержат стимул, перевод и источник стимула соответственно, а следующие 16 столбцов соответствуют каждому из 16-ти спикеров. На преобразованных данных был подсчитан процент полного согласия всех спикеров (74.2 %). Так как процент согласия спикеров не является достаточно надежной мерой согласия, на преобразованных данных была подсчитана каппа Коэна (на спикерах 7 и 11). Значение каппы Коэна (Kappa = 0.842, p < 0.001) говорит о высокой согласованности спикеров (результат статистически значимый). Кроме того, на преобразованных данных была подсчитана каппа Фляйса (Kappa = 0.855, p = 0). Значение каппы Фляйса также говорит о достаточно высокой согласованности спикеров на статистически значимом уровне.
+```
+
+### 2.1
+```{r}
+data_verbs <- read_csv('https://raw.githubusercontent.com/agricolamz/2018_data_analysis_for_linguists/master/data/students/Lera-Z/hw1_agreement/hw1_2_verbs.csv')
+
+df_verbs <- as_tibble(data_verbs)
+df_verbs %>%
+  distinct(SubjectCode) %>%
+  count()
+```
+
+### 2.2
+```{r}
+df_verbs <- as_tibble(data_verbs)
+typeof(df_verbs$GivenScore)
+df_verbs %>%
+  group_by(Gender, WordType) %>%
+  summarise_at(c("GivenScore"), mean, na.rm = TRUE)
+```
+
+### 2.3
+```{r}
+df_verbs %>% 
+  na.omit() %>%
+  select(SubjectCode, Stimulus, GivenScore) %>% 
+  spread(key = SubjectCode, value = GivenScore) ->
+  df_verbs_short
+head(df_verbs_short)
+agree(df_verbs_short[,-c(1:1)])
+```
+
+
+### 2.4
+```{r}
+kappam.fleiss(df_verbs_short[,-c(1:1)])
+```
+
+### 2.5
+```{r}
+icc(df_verbs_short[,-1], model = "twoway", type = "agreement")
+```
+
+### 2.6
+```{r}
+table <- as.table(cor(df_verbs_short[, -1], method = "kendall"))
+table[lower.tri(table, diag = TRUE)] <- NA
+tibble(min_kendall = min(table[!is.na(table)]), max_kendall = max(table[!is.na(table)]))
+```
