@@ -1,0 +1,62 @@
+---
+title: "hw5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### 1.1
+```{r}
+library(GGally)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ca)
+library(ggrepel)
+
+data = read.csv('https://raw.githubusercontent.com/agricolamz/2018_data_analysis_for_linguists/master/data/students/Lera-Z/hw5_CA_MCA/hw5_chairs.csv')
+data_2 = subset(data, select=-c(Shop, WordDE, Category))
+
+MCA <- MASS::mca(data_2)
+
+data <- cbind(data, MCA$rs)
+variables <- as_data_frame(MCA$cs)
+variables$var_names <- rownames(MCA$cs)
+
+data %>% 
+  ggplot(aes(`1`, `2`))+
+  geom_point(aes(color = Category))+
+  stat_ellipse(aes(color = Category))+
+  geom_text(data = variables, aes(`1`, `2`, label = var_names))+
+  theme_bw()+
+  scale_x_continuous(limits = c(-0.015, 0.02))
+```
+### 1.2
+```
+Видно, что Stuhl и Sessel в этом пространстве достаточно хорошо разделяются. В немецком категории Stuhl и Sessel, видимо, имеют четкое разграничение функционально и по внешнему виду.
+```
+### 2.1
+```{r}
+colors_data = read.csv('https://raw.githubusercontent.com/agricolamz/2018_data_analysis_for_linguists/master/data/students/Lera-Z/hw5_CA_MCA/hw5_colreg.csv')
+rownames(colors_data) <- c('color1', 'color2', 'color3', 'color4', 'color5', 'color6', 'color7', 'color8', 'color9', 'color10', 'color11')
+ca <- ca(colors_data)
+colors_col <- data.frame(ca$colcoord)
+colors_col$rows <- rownames(ca$colcoord)
+
+colors_row <- data.frame(ca$rowcoord)
+colors_row$rows <- rownames(ca$rowcoord)
+
+colors_col %>% 
+  ggplot(aes(Dim1, Dim2, label = rows))+
+  geom_text(color = "blue")+
+  geom_text(data = colors_row, color = "red")+
+  theme_bw()+
+  labs(x = "Dim1 (42.1%)",
+       y = "Dim2 (32.6%)")
+```
+
+### 2.2
+```
+Видно, что color2, 11, 7, 8, 3 часто присутствуют в fiction. Есть два цвета, которые ближе всего к spoken (color1, 10) - может, это какие-нибудь цвета, которые входят в какие-нибудь идиомы? Которые часто в устной речи используются. В academic вообще не особо часто используются цвета. А к  press близки цвета 5, 6, 9.  
+```
